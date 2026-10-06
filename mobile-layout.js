@@ -97,43 +97,49 @@
     }, true);
   }
 
-  function updateHeaderEventsNavigation() {
-    const list = document.querySelector('#SITE_HEADER nav[aria-label="Site"] ul');
-    if (!list || list.querySelector('#lady-events-nav-item')) {
+  function createHeaderNavigation() {
+    const header = document.getElementById('SITE_HEADER');
+    if (!header || header.querySelector('.lady-header-nav')) {
       return;
     }
 
-    const template = list.querySelector('#comp-jj4guwwv3');
-    if (!template) {
-      return;
+    const nav = document.createElement('nav');
+    nav.className = 'lady-header-nav';
+    nav.setAttribute('aria-label', 'Main navigation');
+    const routes = [
+      ['Home', 'index.htm'],
+      ['Visit', 'visit.html'],
+      ['Exhibit', 'contact-us.html'],
+      ['Events', 'event-list.html'],
+      ['News', 'news.html'],
+    ];
+
+    for (const [label, route] of routes) {
+      const link = document.createElement('a');
+      link.href = `${prefix}${route}`;
+      link.textContent = label;
+      nav.append(link);
     }
 
-    const item = template.cloneNode(true);
-    item.id = 'lady-events-nav-item';
-    item.dataset.index = '3';
-    item.removeAttribute('data-data-id');
-    template.dataset.index = '4';
-    const link = item.querySelector('a[data-testid="linkElement"]');
-    if (!link) {
-      return;
-    }
-
-    link.href = `${prefix}event-list.html`;
-    link.removeAttribute('aria-current');
-    const label = link.querySelector('p');
-    if (label) {
-      label.id = 'lady-events-nav-label';
-      replaceText(label, 'EVENTS');
+    const headerContent = header.querySelector('.XgJ1FR');
+    const logo = header.querySelector('#comp-js1gz4x1');
+    if (headerContent && logo?.parentElement === headerContent.querySelector('[data-mesh-id="SITE_HEADERinlineContent-gridContainer"]')) {
+      logo.after(nav);
+    } else if (headerContent) {
+      headerContent.append(nav);
     } else {
-      replaceText(link, 'EVENTS');
+      header.append(nav);
+    }
+  }
+
+  function observeHeaderNavigation() {
+    const header = document.getElementById('SITE_HEADER');
+    if (!header || header.dataset.ladyNavigationObserver) {
+      return;
     }
 
-    const exhibitItem = list.querySelector('#comp-jj4guwwv2');
-    if (exhibitItem) {
-      exhibitItem.after(item);
-    } else {
-      template.before(item);
-    }
+    header.dataset.ladyNavigationObserver = 'true';
+    new MutationObserver(createHeaderNavigation).observe(header, { childList: true, subtree: true });
   }
 
   function updateContactEmail() {
@@ -141,6 +147,53 @@
       link.href = 'mailto:ammarlbanna@gmail.com';
       replaceText(link, 'ammarlbanna@gmail.com');
     }
+  }
+
+  function updateContactPage() {
+    if (!window.location.pathname.toLowerCase().endsWith('/contact-us.html')) {
+      return;
+    }
+
+    const phone = document.querySelector('#comp-jizvjq0c1');
+    if (phone) {
+      replaceText(phone, '+20 100 085 0203');
+    }
+
+    const email = document.querySelector('#comp-jizvjq0c2 a[href^="mailto:"]');
+    if (email) {
+      email.href = 'mailto:royalfestival.eg@gmail.com';
+      replaceText(email, 'royalfestival.eg@gmail.com');
+    }
+
+    const form = document.querySelector('#comp-kgam3qw4');
+    if (!form || form.dataset.ladyMailReady) {
+      return;
+    }
+
+    form.dataset.ladyMailReady = 'true';
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const value = (selector) => form.querySelector(selector)?.value.trim() || '';
+      const name = value('input[name="name-*"]');
+      const senderEmail = value('input[name="email"]');
+      const phoneNumber = value('input[name="phone"]');
+      const address = value('input[name="address"]');
+      const subject = value('input[name="subject"]') || 'Contact from Lady Events website';
+      const message = value('textarea');
+      const body = [
+        `Name: ${name}`,
+        `Email: ${senderEmail}`,
+        `Phone: ${phoneNumber}`,
+        `Address: ${address}`,
+        '',
+        message,
+      ].join('\n');
+      window.location.assign(
+        `mailto:royalfestival.eg@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+      );
+    }, true);
   }
 
   function removeFoundingCompanyDetails() {
@@ -191,7 +244,7 @@
       ['Visit', 'visit.html'],
       ['Exhibit', 'contact-us.html'],
       ['Events', 'event-list.html'],
-      ['Apply to sell', 'book.html'],
+      ['Sell at Lady Events', 'contact-us.html'],
       ['News', 'news.html'],
       ['Contact', 'contact-us.html'],
     ];
@@ -246,7 +299,45 @@
     document.body.append(button, nav);
   }
 
+  function updateFooterExhibitNavigation() {
+    const footer = document.getElementById('SITE_FOOTER');
+    const nav = footer?.querySelector('nav[aria-label="Site"]');
+    if (!footer || !nav) {
+      return;
+    }
+
+    const item = [...nav.querySelectorAll('li')].find((candidate) => {
+      const label = candidate.querySelector('[data-testid^="linkElement"]');
+      return label?.textContent.trim().toLowerCase() === 'exhibit';
+    });
+    const trigger = item?.querySelector('[data-testid^="linkElement"]');
+    if (trigger && (trigger.tagName !== 'A' || !trigger.href.endsWith('/contact-us.html'))) {
+      const link = document.createElement('a');
+      link.className = trigger.className;
+      link.dataset.testid = trigger.dataset.testid || 'lady-footer-exhibit-link';
+      link.href = `${prefix}contact-us.html`;
+      link.textContent = 'EXHIBIT';
+      link.setAttribute('aria-label', 'Contact Lady Events');
+      trigger.replaceWith(link);
+    }
+
+    const submenu = item?.querySelector('ul');
+    if (submenu) {
+      hideElement(submenu);
+    }
+
+    if (!footer.dataset.ladyExhibitObserver) {
+      footer.dataset.ladyExhibitObserver = 'true';
+      new MutationObserver(updateFooterExhibitNavigation).observe(footer, {
+        childList: true,
+        subtree: true,
+      });
+    }
+  }
+
   function updateSharedNavigation() {
+    updateFooterExhibitNavigation();
+
     for (const link of document.querySelectorAll('a[href$="news.html"]')) {
       if (link.textContent.trim().toLowerCase() === 'newsletter') {
         replaceText(link, 'NEWS');
@@ -300,11 +391,18 @@
     }
 
     const hero = document.querySelector('#comp-mdn9ald9');
+    for (const link of document.querySelectorAll('main a[aria-label="EXHIBIT"], main a')) {
+      if (link.getAttribute('aria-label')?.toLowerCase() === 'exhibit'
+        || link.textContent.trim().toLowerCase() === 'exhibit') {
+        link.href = `${prefix}contact-us.html`;
+      }
+    }
+
     const heroMedia = hero && hero.querySelector('#img_comp-mdn9ald91');
     if (heroMedia && !heroMedia.querySelector('video')) {
       const video = document.createElement('video');
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      video.src = `${prefix}media/lady-events-banner.mp4`;
+      video.src = `${prefix}media/lady-events-banner.mp4?v=20261007b`;
       video.autoplay = !reduceMotion;
       video.controls = reduceMotion;
       video.loop = true;
@@ -504,8 +602,10 @@
     updateSharedNavigation();
     updateSocialLinks();
     updateExhibitNavigation();
-    updateHeaderEventsNavigation();
+    createHeaderNavigation();
+    observeHeaderNavigation();
     updateContactEmail();
+    updateContactPage();
     removeFoundingCompanyDetails();
     updateSellerLinks();
     updateHomePage();
