@@ -53,21 +53,31 @@
     }
 
     for (const socialBar of document.querySelectorAll('ul[aria-label="Social Bar"]')) {
-      if (socialBar.querySelector('.lady-tiktok-link')) {
-        continue;
+      let link = socialBar.querySelector('.lady-tiktok-link');
+      if (!link) {
+        const item = document.createElement('li');
+        item.className = 'lady-tiktok-item';
+        link = document.createElement('a');
+        link.className = 'lady-tiktok-link';
+        item.append(link);
+        socialBar.append(item);
       }
 
-      const item = document.createElement('li');
-      item.className = 'lady-tiktok-item';
-      const link = document.createElement('a');
-      link.className = 'lady-tiktok-link';
       link.href = 'https://www.tiktok.com/@ladyevents.eg?_r=1&_t=ZS-9AL67Mlavcj';
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       link.setAttribute('aria-label', 'TikTok');
-      link.textContent = 'TikTok';
-      item.append(link);
-      socialBar.append(item);
+      link.replaceChildren();
+      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      icon.setAttribute('viewBox', '0 0 24 24');
+      icon.setAttribute('width', '22');
+      icon.setAttribute('height', '22');
+      icon.setAttribute('aria-hidden', 'true');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('fill', 'currentColor');
+      path.setAttribute('d', 'M16.6 5.8a4.6 4.6 0 0 1-1-2.8h-3.2v12a2.5 2.5 0 1 1-2.5-2.5c.4 0 .8.1 1.2.3V9.5a5.7 5.7 0 1 0 4.5 5.5V8.8a7.8 7.8 0 0 0 4.4 1.4V7a4.7 4.7 0 0 1-3.4-1.2Z');
+      icon.append(path);
+      link.append(icon);
     }
   }
 
@@ -156,7 +166,27 @@
 
     const phone = document.querySelector('#comp-jizvjq0c1');
     if (phone) {
-      replaceText(phone, '+20 100 085 0203');
+      const whatsapp = document.createElement('a');
+      whatsapp.className = 'lady-whatsapp-contact';
+      whatsapp.href = 'https://wa.me/201000850203';
+      whatsapp.target = '_blank';
+      whatsapp.rel = 'noopener noreferrer';
+      whatsapp.setAttribute('aria-label', 'Message Lady Events on WhatsApp at +20 100 085 0203');
+      whatsapp.title = 'Message Lady Events on WhatsApp';
+      whatsapp.innerHTML = '<svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path fill="currentColor" d="M12.04 2a9.9 9.9 0 0 0-8.45 15.07L2 22l5.1-1.55A9.9 9.9 0 1 0 12.04 2Zm0 18.05a8.1 8.1 0 0 1-4.13-1.13l-.3-.18-3.03.92.94-2.95-.2-.31a8.1 8.1 0 1 1 6.72 3.65Zm4.45-6.07c-.24-.12-1.42-.7-1.64-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.1-.49.1-.1.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.46-.4-.4-.54-.4l-.46-.01c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.65.58.25 1.03.4 1.38.51.58.18 1.1.16 1.52.1.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z"/></svg>';
+      const socialBar = document.querySelector('#comp-jizvjq0c4 ul[aria-label="Social Bar"]');
+      if (socialBar) {
+        let item = socialBar.querySelector('.lady-whatsapp-item');
+        if (!item) {
+          item = document.createElement('li');
+          item.className = 'lady-whatsapp-item';
+          socialBar.append(item);
+        }
+        item.replaceChildren(whatsapp);
+        phone.hidden = true;
+      } else {
+        phone.replaceChildren(whatsapp);
+      }
     }
 
     const email = document.querySelector('#comp-jizvjq0c2 a[href^="mailto:"]');
@@ -302,28 +332,49 @@
   function updateFooterExhibitNavigation() {
     const footer = document.getElementById('SITE_FOOTER');
     const nav = footer?.querySelector('nav[aria-label="Site"]');
-    if (!footer || !nav) {
+    if (!footer) {
       return;
     }
 
-    const item = [...nav.querySelectorAll('li')].find((candidate) => {
-      const label = candidate.querySelector('[data-testid^="linkElement"]');
-      return label?.textContent.trim().toLowerCase() === 'exhibit';
-    });
-    const trigger = item?.querySelector('[data-testid^="linkElement"]');
-    if (trigger && (trigger.tagName !== 'A' || !trigger.href.endsWith('/contact-us.html'))) {
-      const link = document.createElement('a');
-      link.className = trigger.className;
-      link.dataset.testid = trigger.dataset.testid || 'lady-footer-exhibit-link';
-      link.href = `${prefix}contact-us.html`;
-      link.textContent = 'EXHIBIT';
-      link.setAttribute('aria-label', 'Contact Lady Events');
-      trigger.replaceWith(link);
+    if (nav) {
+      const item = [...nav.querySelectorAll('li')].find((candidate) => {
+        const label = candidate.querySelector('[data-testid^="linkElement"]');
+        return label?.textContent.trim().toLowerCase() === 'exhibit';
+      });
+      const trigger = item?.querySelector('[data-testid^="linkElement"]');
+      if (trigger && (trigger.tagName !== 'A' || !trigger.href.endsWith('/contact-us.html'))) {
+        const link = document.createElement('a');
+        link.className = trigger.className;
+        link.dataset.testid = trigger.dataset.testid || 'lady-footer-exhibit-link';
+        link.href = `${prefix}contact-us.html`;
+        link.textContent = 'EXHIBIT';
+        link.setAttribute('aria-label', 'Contact Lady Events');
+        trigger.replaceWith(link);
+      }
+
+      const submenu = item?.querySelector('ul');
+      if (submenu) {
+        hideElement(submenu);
+      }
     }
 
-    const submenu = item?.querySelector('ul');
-    if (submenu) {
-      hideElement(submenu);
+    if (!footer.querySelector('.lady-powered-by')) {
+      const copyright = [...footer.querySelectorAll('p')].find((paragraph) =>
+        paragraph.textContent.trim().startsWith('©')
+      );
+      const attribution = document.createElement('a');
+      attribution.className = 'lady-powered-by';
+      attribution.href = 'https://egyptcode.online/';
+      attribution.target = '_blank';
+      attribution.rel = 'noopener noreferrer';
+      attribution.textContent = 'Powered by Egypt Code';
+      attribution.setAttribute('aria-label', 'Powered by Egypt Code (opens in a new tab)');
+      if (copyright) {
+        copyright.parentElement.classList.add('lady-footer-credits');
+        copyright.after(attribution);
+      } else {
+        footer.append(attribution);
+      }
     }
 
     if (!footer.dataset.ladyExhibitObserver) {
